@@ -1,0 +1,322 @@
+idea:
+  title: 'Topological Drift Detection for LLM Embedding Streams: Comprehensive Evaluation
+    with Strong Baselines and Realistic Drifts'
+  domain: machine_learning
+  hypothesis: 'Wasserstein distance on H0 persistence diagrams can detect distribution
+    drift
+
+    in LLM embedding streams more sensitively than strong modern two-sample tests
+
+    (MMD-aggregated, deep-kernel MMD, MLP-based C2ST) when drift alters topological
+
+    structure without shifting centroids, even across diverse embedding families
+
+    (MiniLM, E5, MPNet) and realistic drift scenarios (actual paraphrase-based
+
+    style shift, not just synthetic vector noise).
+
+    '
+  background:
+    description: "This is v3 addressing the REMAINING peer review issues from v2.\
+      \ The v2 paper\nwas rated \"strong workshop / mid-tier conference, competitive\
+      \ for top-tier with\nimprovements.\" The specific issues to address are:\n\n\
+      1. METHODOLOGICAL PRECISION: Fully specify all TDA computation details:\n  \
+      \ - State exact Vietoris-Rips parameters: max_edge_length, max_homology_dim,\n\
+      \     distance metric (USE COSINE DISTANCE after PCA, as it matches sentence\n\
+      \     embedding geometry better than Euclidean).\n   - Define \"reference diagram\"\
+      \ construction precisely: compute one persistence\n     diagram per reference\
+      \ window, then compare each test window's diagram to\n     each reference diagram\
+      \ and take the MEAN distance (no Wasserstein barycenter\n     needed \u2014\
+      \ just mean of pairwise Wasserstein distances).\n   - Use FARTHEST-POINT SAMPLING\
+      \ (not random) for TDA subsampling to better\n     preserve geometric structure.\n\
+      \   - Fit PCA ONLY on reference windows, then transform test windows using the\n\
+      \     same projection (explicitly prevent leakage).\n\n2. STRONGER TWO-SAMPLE\
+      \ BASELINES:\n   - MMD-aggregated (multi-kernel with bandwidth collection [0.1,\
+      \ 0.5, 1, 5, 10]\n     times median heuristic, take maximum MMD across kernels).\n\
+      \   - Deep-kernel MMD: train a small 2-layer MLP (128-64) to maximize MMD on\
+      \ a\n     held-out portion of reference data, then evaluate on test windows.\n\
+      \   - C2ST with MLP: replace logistic regression with a 2-layer MLP (128-64,\
+      \ ReLU,\n     dropout 0.2) using 3-fold CV AUC as drift score.\n\n3. BROADER\
+      \ ENCODER DIVERSITY: Test with 3+ embedding models from DIFFERENT\n   families\
+      \ (not just MiniLM variants):\n   - all-MiniLM-L6-v2 (384d, sentence-transformers)\n\
+      \   - all-mpnet-base-v2 (768d, sentence-transformers, MPNet-based)\n   - intfloat/e5-small-v2\
+      \ (384d, E5 family, instruction-tuned)\n   This tests whether TDA advantage\
+      \ is encoder-specific or general.\n\n4. REALISTIC STYLE DRIFT: Replace synthetic\
+      \ vector noise with actual\n   paraphrase-based style perturbation:\n   - Use\
+      \ nlpaug or a lightweight paraphraser (e.g., Parrot paraphraser or\n     back-translation\
+      \ via Helsinki-NLP/opus-mt models) to generate style-shifted\n     text, then\
+      \ embed the paraphrased text.\n   - If paraphrase models are too slow/large\
+      \ for CPU, use nlpaug's synonym\n     replacement + random insertion + random\
+      \ swap as a text-level perturbation\n     (WordNet-based), ensuring the perturbation\
+      \ happens at TEXT level before\n     embedding, not at vector level.\n\n5. PROPER\
+      \ HOLD-OUT FPR CALIBRATION:\n   - Split no-drift data into 3 parts: calibration\
+      \ windows (for threshold\n     setting), validation windows (for FPR estimation),\
+      \ and test windows.\n   - Report REALIZED FPR on the held-out validation windows\
+      \ that were NOT used\n     for threshold calibration.\n   - Target: 5% FPR.\
+      \ Report mean +/- std of realized FPR across seeds.\n\n6. ADDITIONAL TDA FEATURES:\n\
+      \   - Persistence images (discretized, Gaussian-weighted; use persim library)\n\
+      \   - Bottleneck distance on persistence diagrams\n   These are common TDA vectorizations\
+      \ that reviewers expect to see.\n\n7. MORE WINDOWS FOR ROC ESTIMATION:\n   -\
+      \ Use at least 20 reference windows and 20 test windows per run (up from 10).\n\
+      \   - This gives more stable AUC estimates.\n\n8. PER-CONFIGURATION BREAKDOWNS:\n\
+      \   - Report results per-dataset AND per-encoder (not just averaged).\n   -\
+      \ Show that TDA advantage is consistent across configurations, or clearly\n\
+      \     identify where it fails.\n\nCRITICAL IMPLEMENTATION NOTES:\n- Embeddings\
+      \ MUST be cached to disk (npz files) after first computation.\n  Do NOT recompute\
+      \ embeddings for each experiment condition.\n- PCA must be fit ONLY on reference\
+      \ data. Store the fitted PCA object and\n  apply it to test data without refitting.\n\
+      - Farthest-point sampling: use scipy.spatial.distance + greedy selection.\n\
+      - For paraphrase drift: apply text augmentation BEFORE embedding. Cache\n  augmented\
+      \ text to avoid re-augmentation.\n- Deep-kernel MMD: train the kernel network\
+      \ on a SEPARATE held-out split\n  of reference data (not the same windows used\
+      \ for threshold calibration).\n- Time budget is tight (3 hours). Prioritize:\
+      \ (a) correct methodology,\n  (b) main results table, (c) ablations. If time\
+      \ runs short, skip the\n  ablation over PCA dims (keep default 50) and reduce\
+      \ seeds to 3.\n"
+    papers:
+    - url: https://arxiv.org/abs/2205.13147
+      description: Practical review of TDA for machine learning
+    - url: https://arxiv.org/abs/2007.01882
+      description: Drift detection and distribution shift in ML systems
+    - url: https://arxiv.org/abs/2309.03831
+      description: Amazon MMD on BERT embeddings (3-year production study)
+    - url: https://arxiv.org/abs/2205.12706
+      description: 'MMDEW: streaming MMD with exponential windows'
+    - url: https://arxiv.org/abs/1611.04488
+      description: MMD-aggregated tests (Schrab et al.) and kernel selection
+    - url: https://arxiv.org/abs/1811.03440
+      description: Deep kernel MMD for two-sample testing (Liu et al.)
+    datasets:
+    - name: AG News
+      source: Hugging Face datasets
+      description: '4-class news topic dataset for topic drift and within-topic experiments.
+
+        '
+      size: 120K samples
+    - name: 20 Newsgroups
+      source: scikit-learn
+      description: '20-class newsgroup dataset for finer-grained drift experiments.
+
+        '
+      size: 18K samples
+  methodology:
+    approach: 'Comprehensive multi-dataset, multi-encoder evaluation with strong modern
+
+      baselines, precise TDA methodology, realistic drift scenarios, and proper
+
+      hold-out calibration.
+
+      '
+    steps:
+    - 'Embed AG News and 20 Newsgroups with 3 models: all-MiniLM-L6-v2, all-mpnet-base-v2,
+      intfloat/e5-small-v2. Cache all embeddings to disk as .npz files.'
+    - 'For paraphrase-based style drift: apply nlpaug WordNet-based augmentation (synonym
+      replacement + random swap, aug_p=0.3) to text BEFORE embedding. Cache augmented
+      texts.'
+    - 'Create 7 drift scenarios per dataset: (1) abrupt topic, (2) gradual topic,
+      (3) domain shift, (4) centroid-preserving subtopic reweighting, (5) paraphrase-based
+      style drift (text-level augmentation then embed), (6) geometric reorganization
+      (specify: k=4 clusters via k-means on reference, 40% shift toward cyclically-next
+      cluster center, then re-center), (7) no-drift control'
+    - 'Split no-drift windows into 3 groups: 10 calibration (threshold at 95th pct),
+      10 validation (report realized FPR), 20+ test windows for drift scenarios'
+    - Fit PCA (50 dims) ONLY on calibration reference windows. Apply same transform
+      to all other windows. Document this explicitly.
+    - 'For TDA: use farthest-point sampling (100 points per window). Compute Vietoris-Rips
+      with COSINE distance, max_edge_length=2.0, max_homology_dim=1.'
+    - 'Reference diagram handling: compute one PD per calibration window, compute
+      Wasserstein/bottleneck distance from each test window PD to EACH reference PD,
+      report MEAN distance as the drift score.'
+    - 'Compute classical baselines: centroid shift, covariance shift, MMD-RBF (median
+      heuristic), MMD-aggregated (bandwidths=[0.1,0.5,1,5,10]*median), energy distance,
+      kNN (k=5), C2ST-LR (logistic, 3-fold CV), C2ST-MLP (128-64-ReLU-dropout0.2,
+      3-fold CV)'
+    - 'Compute TDA features: persistence entropy H0/H1, Wasserstein-1 H0/H1, bottleneck
+      H0/H1, persistence images H0/H1 (resolution=20x20, sigma=0.1, persim), Betti
+      curves H0/H1, persistence landscapes H1 (first 3), PHD H0'
+    - Run all methods across 5 seeds (42, 123, 456, 789, 1011). If time-constrained,
+      use 3 seeds minimum.
+    - Report AUC with 95% CI, realized FPR on held-out validation windows, detection
+      delay, end-to-end runtime per window (including PCA transform + farthest-point
+      sampling + diagram + feature)
+    - 'Run key ablation: subsample size {40, 80, 100, 160} for Wasserstein H0 on geo_reorg,
+      with farthest-point vs random sampling comparison'
+    - Report all results BOTH averaged AND per-dataset/per-encoder breakdown
+    - 'Generate figures: AUC heatmap, per-encoder comparison, runtime breakdown, FPR
+      calibration (target vs realized), ablation (farthest-point vs random)'
+    baselines:
+    - Centroid mean shift (L2)
+    - Covariance shift (Frobenius norm)
+    - MMD-RBF (single kernel, median heuristic bandwidth)
+    - 'MMD-aggregated (max over 5 bandwidths: [0.1, 0.5, 1, 5, 10] * median)'
+    - Energy distance
+    - kNN distance shift (k=5)
+    - C2ST with logistic regression (3-fold CV AUC)
+    - C2ST with MLP (128-64, ReLU, dropout=0.2, 3-fold CV AUC)
+    - Persistence entropy H0 and H1
+    - Wasserstein-1 distance on PDs H0 and H1
+    - Bottleneck distance on PDs H0 and H1
+    - Persistence images H0 and H1 (L2 distance between vectorized images)
+    - Betti curve L2 distance H0 and H1
+    - Persistence landscapes L2 (first 3, H1)
+    - PHD H0
+    metrics:
+    - AUC with 95% confidence intervals (mean +/- 1.96*std/sqrt(n_seeds))
+    - 'Realized FPR on held-out validation windows (target: 5%)'
+    - Detection delay (windows from drift onset to first alarm)
+    - End-to-end runtime per window (PCA + sampling + diagram + feature, in ms)
+    - Per-dataset and per-encoder breakdown of all metrics
+  constraints:
+    compute: cpu_only
+    time_limit: 10800
+    memory: 16GB
+    budget: $100
+    dependencies:
+    - numpy
+    - pandas
+    - scikit-learn
+    - scipy
+    - matplotlib
+    - seaborn
+    - ripser
+    - persim
+    - giotto-tda
+    - sentence-transformers
+    - datasets
+    - tqdm
+    - nlpaug
+    - torch
+  expected_outputs:
+  - type: metrics
+    format: json
+    fields:
+    - dataset
+    - encoder
+    - method
+    - drift_type
+    - seed
+    - auc
+    - auc_ci_low
+    - auc_ci_high
+    - fpr_realized
+    - detection_delay
+    - runtime_total_ms
+    - runtime_pca_ms
+    - runtime_sampling_ms
+    - runtime_diagram_ms
+    - runtime_feature_ms
+    - sampling_method
+    description: Full results with per-configuration breakdowns and runtime decomposition
+  - type: visualization
+    format: png
+    description: 'Required plots:
+
+      1. AUC heatmap: method x drift_type (averaged), with separate panels per encoder
+
+      2. Per-encoder comparison: grouped bar chart for geo_reorg showing Wasserstein
+      H0 vs MMD-agg vs C2ST-MLP
+
+      3. Runtime breakdown: stacked bar (PCA + sampling + diagram + feature) per TDA
+      method
+
+      4. FPR calibration: realized FPR (box plot across seeds) vs 5% target line
+
+      5. Ablation: farthest-point vs random sampling (AUC vs subsample size)
+
+      6. Paraphrase drift: AUC comparison (text-level perturbation vs synthetic noise)
+
+      '
+  - type: data
+    format: csv
+    description: 'Raw results CSV. One row per (dataset, encoder, method, drift_type,
+      seed).
+
+      Include all metrics and runtime components.
+
+      '
+  - type: report
+    format: markdown
+    description: "Comprehensive analysis including:\n- Precise algorithm specification\
+      \ (filtration params, distance metric, sampling,\n  reference diagram handling,\
+      \ PCA fitting protocol)\n- Main results table with per-encoder breakdown\n-\
+      \ Statistical significance (permutation tests, multiple-comparison correction)\n\
+      - FPR calibration analysis (held-out validation)\n- Comparison: farthest-point\
+      \ vs random sampling\n- Comparison: text-level paraphrase drift vs synthetic\
+      \ noise\n- Comparison: MMD-agg and C2ST-MLP vs vanilla MMD and C2ST-LR\n- Comparison:\
+      \ persistence images and bottleneck vs Wasserstein\n- When TDA helps (specific\
+      \ conditions) vs when it doesn't\n- Limitations clearly stated\n"
+  evaluation_criteria:
+  - 3 embedding models from different families (MiniLM, MPNet, E5) tested
+  - Paraphrase-based style drift uses TEXT-LEVEL augmentation before embedding (not
+    vector noise)
+  - PCA fit ONLY on reference/calibration data (no leakage)
+  - Farthest-point sampling used (not random) for TDA subsampling
+  - Cosine distance used for Vietoris-Rips filtration
+  - Reference diagram handling clearly specified (mean of pairwise distances)
+  - MMD-aggregated AND C2ST-MLP included as strong baselines
+  - Persistence images AND bottleneck distance included as TDA alternatives
+  - FPR reported on held-out validation windows separate from calibration windows
+  - At least 20 test windows per drift scenario for stable AUC estimation
+  - Results reported per-dataset AND per-encoder (not just averaged)
+  - Geometric reorganization drift fully specified (k=4, cyclic-next, 40% shift, re-center)
+  - All filtration parameters explicitly stated in report
+  - End-to-end runtime includes PCA + sampling + diagram + feature extraction
+  - Code runs end-to-end within 3 hours on CPU
+  metadata:
+    author: tina
+    tags:
+    - topological-data-analysis
+    - persistent-homology
+    - drift-detection
+    - llm-monitoring
+    - embedding-space
+    - trustworthy-ai
+    - deep-kernel-mmd
+    - two-sample-testing
+    - cosine-distance
+    - farthest-point-sampling
+    priority: high
+    estimated_duration: 3 hours
+    notes: 'V3 addressing remaining reviewer concerns from v2. Key changes:
+
+      - Cosine distance for Rips (matches embedding geometry)
+
+      - Farthest-point sampling (preserves structure better than random)
+
+      - PCA fit only on reference (prevents leakage)
+
+      - Mean-of-pairwise for reference diagram comparison (no barycenter needed)
+
+      - MMD-aggregated + deep-kernel MMD + C2ST-MLP as strong baselines
+
+      - Persistence images + bottleneck distance as additional TDA features
+
+      - 3 encoder families (MiniLM, MPNet, E5)
+
+      - Text-level paraphrase augmentation (nlpaug) for realistic style drift
+
+      - Held-out validation for FPR calibration
+
+      - 20+ test windows for stable ROC
+
+      - Per-encoder breakdowns reported
+
+
+      Time management: If 3 hours is tight, prioritize in order:
+
+      1. Correct methodology (PCA fitting, farthest-point, cosine)
+
+      2. Main results (all methods, all drifts, 3 seeds minimum)
+
+      3. Per-encoder breakdown
+
+      4. Ablation (farthest-point vs random)
+
+      Skip deep-kernel MMD if training is too slow on CPU.
+
+      '
+    idea_id: topological_drift_detection_fo_20260505_212823_fe415682
+    created_at: '2026-05-05T21:28:23.896968'
+    status: submitted
+    github_repo_name: topo-drift-llm-embed-e34a
+    github_repo_url: https://github.com/Tina-realm/topo-drift-llm-embed-e34a
