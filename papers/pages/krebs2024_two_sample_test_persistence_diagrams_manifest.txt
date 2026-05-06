@@ -1,0 +1,19 @@
+PDF: papers/krebs2024_two_sample_test_persistence_diagrams.pdf
+Total pages: 42
+Pages per chunk: 3
+
+Chunks:
+  krebs2024_two_sample_test_persistence_diagrams_chunk_001.pdf: pages 1-3
+  krebs2024_two_sample_test_persistence_diagrams_chunk_002.pdf: pages 4-6
+  krebs2024_two_sample_test_persistence_diagrams_chunk_003.pdf: pages 7-9
+  krebs2024_two_sample_test_persistence_diagrams_chunk_004.pdf: pages 10-12
+  krebs2024_two_sample_test_persistence_diagrams_chunk_005.pdf: pages 13-15
+  krebs2024_two_sample_test_persistence_diagrams_chunk_006.pdf: pages 16-18
+  krebs2024_two_sample_test_persistence_diagrams_chunk_007.pdf: pages 19-21
+  krebs2024_two_sample_test_persistence_diagrams_chunk_008.pdf: pages 22-24
+  krebs2024_two_sample_test_persistence_diagrams_chunk_009.pdf: pages 25-27
+  krebs2024_two_sample_test_persistence_diagrams_chunk_010.pdf: pages 28-30
+  krebs2024_two_sample_test_persistence_diagrams_chunk_011.pdf: pages 31-33
+  krebs2024_two_sample_test_persistence_diagrams_chunk_012.pdf: pages 34-36
+  krebs2024_two_sample_test_persistence_diagrams_chunk_013.pdf: pages 37-39
+  krebs2024_two_sample_test_persistence_diagrams_chunk_014.pdf: pages 40-42

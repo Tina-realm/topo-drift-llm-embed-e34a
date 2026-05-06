@@ -1,0 +1,6 @@
+PDF: papers/1811.03440_persistence.pdf
+Total pages: 3
+Pages per chunk: 3
+
+Chunks:
+  1811.03440_persistence_chunk_001.pdf: pages 1-3

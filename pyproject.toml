@@ -1,0 +1,10 @@
+[project]
+name = "research-workspace"
+version = "0.1.0"
+description = "Research workspace for topological drift detection experiments"
+requires-python = ">=3.10"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

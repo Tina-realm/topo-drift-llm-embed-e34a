@@ -1,0 +1,27 @@
+{
+  "success": false,
+  "stages": {
+    "resource_finder": {
+      "success": true,
+      "completion_marker": "/workspaces/topo-drift-llm-embed-e34a/.resource_finder_complete",
+      "outputs": {
+        "literature_review": "/workspaces/topo-drift-llm-embed-e34a/literature_review.md",
+        "resources_catalog": "/workspaces/topo-drift-llm-embed-e34a/resources.md",
+        "papers_dir": "/workspaces/topo-drift-llm-embed-e34a/papers",
+        "datasets_dir": "/workspaces/topo-drift-llm-embed-e34a/datasets",
+        "code_dir": "/workspaces/topo-drift-llm-embed-e34a/code"
+      },
+      "log_file": "/workspaces/topo-drift-llm-embed-e34a/logs/resource_finder_claude.log",
+      "transcript_file": "/workspaces/topo-drift-llm-embed-e34a/logs/resource_finder_claude_transcript.jsonl",
+      "elapsed_time": 3907.9920530319214
+    },
+    "experiment_runner": {
+      "success": false,
+      "return_code": 1,
+      "elapsed_time": 11679.669639587402,
+      "log_file": "/workspaces/topo-drift-llm-embed-e34a/logs/execution_claude.log",
+      "transcript_file": "/workspaces/topo-drift-llm-embed-e34a/logs/execution_claude_transcript.jsonl"
+    }
+  },
+  "work_dir": "/workspaces/topo-drift-llm-embed-e34a"
+}
